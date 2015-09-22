@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Easy Lock</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="device_admin_description">Required to turn screen off and put the device to sleep</string>
+    <string name="device_admin_name">Easy Lock</string>
+</resources>
