@@ -5,4 +5,21 @@
     <string name="action_settings">Settings</string>
     <string name="device_admin_description">Required to turn screen off and put the device to sleep</string>
     <string name="device_admin_name">Easy Lock</string>
+    <string name="start_on_boot">Start the service when device boots up</string>
+    <string name="avoid_softkey">Try to avoid softkey presses</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="service_enabled">Service is running. Click to pause.</string>
+    <string name="service_disabled">Service paused. Click to resume.</string>
+    <string name="enable_admin">Please enable administrator privileges for Easy Lock.</string>
+    <string name="show_notification">Show app notification</string>
+    <string name="warning_avoid_softkeys">If you set this option, Easy Lock will try to detect when you\'re pressing navigation bar soft keys and avoid locking the screen in such scenarios.\n\nHowever, it\'s not guaranteed to work always.\n\nThis might impact the general performance of the device.\n\nDo you want to enable this option?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="warning_notification">If you disable EasyLock notification, Android system may end EasyLock in the background.\n\nIt is highly recommended that you keep notification enabled.\n\nAre you sure you want to disable the notification?</string>
+    <string name="warning">Warning</string>
+    <string name="message_enable_usage_access">In order for Easy Lock to identify softkey presses, it should be granted Usage Access Permission. Click OK to go to Security settings, select \'Apps with usage access\' and enable Easy Lock there. After that please press back to return to Easy Lock.</string>
+    <string name="heading_enable_usage_access">Please enable usage access</string>
+    <string name="message_enable_usage_access_for_per_app_profiles">Please enable usage access to enable this option.</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
 </resources>

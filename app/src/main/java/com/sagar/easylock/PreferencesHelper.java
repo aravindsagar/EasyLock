@@ -1,7 +1,12 @@
 package com.sagar.easylock;
 
+import android.annotation.TargetApi;
+import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.preference.PreferenceManager;
 
 import java.util.Collections;
@@ -25,8 +30,11 @@ public class PreferencesHelper {
     }
 
 
-    public static final String KEY_MASTER_SWITCH_ON = "master_switch";
+    public static final String KEY_MASTER_SWITCH_ON  = "master_switch";
     public static final String KEY_STATUS_BAR_HEIGHT = "status_bar_height";
+    public static final String KEY_SHOW_NOTIFICATION = "show_notification";
+    public static final String KEY_START_ON_BOOT     = "start_on_boot";
+    public static final String KEY_DETECT_SOFT_KEY   = "avoid_softkeys";
 
     public static void setPreference(Context context, final String KEY, boolean value){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -37,11 +45,13 @@ public class PreferencesHelper {
     public static void setPreference(Context context, final String KEY, int value){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         preferences.edit().putInt(KEY, value).apply();
+        callListeners();
     }
 
     public static void setPreference(Context context, final String KEY, long value){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         preferences.edit().putLong(KEY, value).apply();
+        callListeners();
     }
 
     public static boolean getBoolPreference(Context context, final String KEY){
@@ -76,5 +86,20 @@ public class PreferencesHelper {
 
     public interface PreferencesChangedListener {
         void onPreferencesChanged();
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static boolean hasUsageAccess(Context context) {
+        try {
+            PackageManager packageManager = context.getPackageManager();
+            ApplicationInfo applicationInfo = packageManager.getApplicationInfo(context.getPackageName(), 0);
+            AppOpsManager appOpsManager = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+            int mode = appOpsManager.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
+                    applicationInfo.uid, applicationInfo.packageName);
+            return (mode == AppOpsManager.MODE_ALLOWED);
+
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
     }
 }
