@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/color_theme"
+    tools:context="com.sagar.easylock.IntroActivity">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:src="@drawable/intro_new"
+        android:scaleType="centerInside"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        tools:ignore="ContentDescription" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/double_tap_to_sleep"
+        android:textColor="@android:color/white"
+        android:layout_marginLeft="36dp"
+        android:layout_marginRight="36dp"
+        android:textSize="28sp"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="36dp"
+        android:layout_marginRight="36dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="32dp"
+        android:textSize="16sp"
+        android:textColor="@android:color/white"
+        android:lineSpacingMultiplier="1.1"
+        android:text="@string/intro_text"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/color_accent">
+        <Button
+            android:id="@+id/button_get_started"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/ButtonBarButton"
+            android:text="@string/get_started"/>
+    </FrameLayout>
+<!-- android:background="@color/color_accent"
+        android:foreground="@drawable/custom_bg"
+        android:textColor="@android:color/white"-->
+</LinearLayout>

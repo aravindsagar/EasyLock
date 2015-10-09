@@ -19,5 +19,16 @@
         <!--
                 <item name="colorControlActivated">@color/color_theme_dark</item>-->
         <item name="colorAccent">@color/color_accent</item>
+        <item name="android:actionOverflowButtonStyle">@style/MyActionButtonOverflow</item>
     </style>
+
+    <style name="MyActionButtonOverflow" parent="android:style/Widget.Holo.Light.ActionButton.Overflow">
+        <item name="android:src">@drawable/ic_more_vert_white_24dp</item>
+        <item name="android:background">?android:attr/actionBarItemBackground</item>
+        <item name="android:contentDescription">"Lala"</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:padding">4dp</item>
+        <item name="android:scaleType">centerInside</item>
+    </style>
+
 </resources>

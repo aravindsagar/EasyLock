@@ -30,11 +30,14 @@ public class PreferencesHelper {
     }
 
 
-    public static final String KEY_MASTER_SWITCH_ON  = "master_switch";
-    public static final String KEY_STATUS_BAR_HEIGHT = "status_bar_height";
-    public static final String KEY_SHOW_NOTIFICATION = "show_notification";
-    public static final String KEY_START_ON_BOOT     = "start_on_boot";
-    public static final String KEY_DETECT_SOFT_KEY   = "avoid_softkeys";
+    public static final String KEY_MASTER_SWITCH_ON   = "master_switch";
+    public static final String KEY_STATUS_BAR_HEIGHT  = "status_bar_height";
+    public static final String KEY_SHOW_NOTIFICATION  = "show_notification";
+    public static final String KEY_START_ON_BOOT      = "start_on_boot";
+    public static final String KEY_DETECT_SOFT_KEY    = "avoid_softkeys";
+    public static final String KEY_SUPPORT_SMART_LOCK = "support_smart_lock";
+    public static final String KEY_DOUBLE_TAP_TIMEOUT = "double_tap_timeout";
+    public static final String KEY_HAS_VIEWED_INTRO   = "has_viewed_intro";
 
     public static void setPreference(Context context, final String KEY, boolean value){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);

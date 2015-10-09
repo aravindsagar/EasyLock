@@ -2,6 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
     tools:context=".MainActivity">
 
     <android.support.v7.widget.Toolbar
@@ -13,10 +14,6 @@
     </android.support.v7.widget.Toolbar>
 
     <ScrollView
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/activity_vertical_margin"
-        android:paddingBottom="@dimen/activity_vertical_margin"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/toolbar_main">
@@ -24,25 +21,231 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-            <CheckBox
-                    android:layout_width="wrap_content"
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/card_view_lock_options"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                card_view:cardCornerRadius="4dp"
+                style="@style/CardStyle">
+
+                <LinearLayout
+                    style="@style/CardInnerLayoutStyle"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/start_on_boot"
-                    android:id="@+id/checkBox_start_on_boot" />
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:text="@string/heading_lock_options"
+                        style="@style/CardHeaderStyle"/>
 
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/avoid_softkey"
-                android:id="@+id/checkBox_avoid_soft_key"
-                android:layout_marginTop="@dimen/activity_vertical_margin" />
+                    <View style="@style/SeparatorView"
+                        android:layout_marginBottom="@dimen/separator_margin" />
 
-            <CheckBox
-                android:layout_width="wrap_content"
+                    <!-- Touch sensitivity layout-->
+                    <LinearLayout
+                        android:baselineAligned="false"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginLeft="@dimen/activity_vertical_margin">
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_weight="1">
+                            <TextView
+                                android:id="@+id/text_view_double_tap_timeout"
+                                android:paddingTop="12dp"
+                                android:paddingLeft="12dp"
+                                android:paddingRight="12dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/double_tap_timeout"
+                                android:textColor="@android:color/black"/>
+                            <SeekBar
+                                android:id="@+id/seek_bar_timeout"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:paddingTop="@dimen/activity_vertical_margin"
+                                android:paddingBottom="@dimen/activity_vertical_margin"/>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+                            <TextView
+                                android:paddingTop="12dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/test"
+                                android:textColor="@android:color/black"
+                                android:layout_gravity="center_horizontal"
+                                android:layout_marginLeft="8dp"
+                                android:layout_marginStart="8dp"
+                                android:layout_marginRight="@dimen/activity_vertical_margin"
+                                android:layout_marginEnd="@dimen/activity_vertical_margin" />
+                            <com.sagar.easylock.drawables.CheckMarkView
+                                android:id="@+id/check_mark_test"
+                                android:layout_marginTop="4dp"
+                                android:layout_marginLeft="4dp"
+                                android:layout_marginStart="4dp"
+                                android:layout_width="@dimen/design_fab_size_normal"
+                                android:layout_height="@dimen/design_fab_size_normal"
+                                android:foreground="?android:selectableItemBackground"
+                                android:clickable="true"
+                                android:layout_marginRight="@dimen/activity_vertical_margin"
+                                android:layout_marginEnd="@dimen/activity_vertical_margin"
+                                android:layout_marginBottom="@dimen/separator_margin"
+                                android:stateListAnimator="@anim/button_elevation"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <View style="@style/SeparatorView" />
+
+                    <CheckBox
+                        android:layout_width="match_parent"
+                        android:text="@string/avoid_softkey"
+                        android:id="@+id/checkBox_avoid_soft_key"
+                        style="@style/CardItemStyle"/>
+
+                    <View style="@style/SeparatorView"
+                        android:id="@+id/separator_smart_lock"/>
+
+                    <CheckBox
+                        android:layout_width="match_parent"
+                        android:text="@string/support_smart_lock"
+                        android:id="@+id/checkBox_enable_smart_lock_support"
+                        android:layout_marginTop="@dimen/separator_margin"
+                        style="@style/CardItemStyle" />
+
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/card_view_app_options"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/show_notification"
-                android:id="@+id/checkBox_show_notification"
-                android:layout_marginTop="@dimen/activity_vertical_margin" />
+                card_view:cardCornerRadius="4dp"
+                style="@style/CardStyle">
+                <LinearLayout
+                    style="@style/CardInnerLayoutStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:text="@string/heading_app_options"
+                        style="@style/CardHeaderStyle" />
+
+                    <View style="@style/SeparatorView" />
+
+                    <CheckBox
+                        android:layout_width="match_parent"
+                        android:text="@string/start_on_boot"
+                        android:id="@+id/checkBox_start_on_boot"
+                        style="@style/CardItemStyle" />
+
+                    <View style="@style/SeparatorView"/>
+
+                    <CheckBox
+                        android:layout_width="match_parent"
+                        android:text="@string/show_notification"
+                        android:id="@+id/checkBox_show_notification"
+                        android:layout_marginTop="@dimen/separator_margin"
+                        style="@style/CardItemStyle" />
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/card_view_more"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                card_view:cardCornerRadius="4dp"
+                style="@style/CardStyle">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    style="@style/CardInnerLayoutStyle">
+
+                    <TextView
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:text="@string/more"
+                        style="@style/CardHeaderStyle" />
+
+                    <View style="@style/SeparatorView"/>
+
+                    <TextView
+                        android:id="@+id/text_about"
+                        android:drawableLeft="@drawable/ic_info_outline_black_24dp"
+                        android:drawableStart="@drawable/ic_info_outline_black_24dp"
+                        android:text="@string/about"
+                        style="@style/MoreTextView" />
+
+                    <View style="@style/SeparatorView"/>
+
+                    <TextView
+                        android:id="@+id/text_quick_intro"
+                        android:drawableLeft="@drawable/ic_help_outline_black_24dp"
+                        android:drawableStart="@drawable/ic_help_outline_black_24dp"
+                        android:text="@string/quick_intro"
+                        style="@style/MoreTextView" />
+
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/card_view_like_app"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                card_view:cardCornerRadius="4dp"
+                style="@style/CardStyle">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    style="@style/CardInnerLayoutStyle">
+
+                    <TextView
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:text="@string/like_this_app"
+                        style="@style/CardHeaderStyle" />
+
+                    <View style="@style/SeparatorView"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:id="@+id/text_share_app"
+                            android:drawableTop="@drawable/ic_share_black_24dp"
+                            android:text="@string/share_app"
+                            style="@style/LikeAppTextView"/>
+
+                        <TextView
+                            android:id="@+id/text_rate_review"
+                            android:drawableTop="@drawable/ic_rate_review_black_24dp"
+                            android:text="@string/rate_review"
+                            style="@style/LikeAppTextView" />
+
+                        <TextView
+                            android:id="@+id/text_donate"
+                            android:drawableTop="@drawable/ic_payment_black_24dp"
+                            android:text="@string/donate"
+                            style="@style/LikeAppTextView" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+
         </LinearLayout>
     </ScrollView>
 

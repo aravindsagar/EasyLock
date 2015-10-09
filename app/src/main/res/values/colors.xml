@@ -9,4 +9,7 @@
     <color name="translucent">#63bfbfbf</color>
     <color name="text_selected">#000000</color>
     <color name="primary_text_default_material_light">#deffffff</color>
+    <color name="green">#2E7D32</color>
+    <color name="separator_color">#19454545</color>
+
 </resources>

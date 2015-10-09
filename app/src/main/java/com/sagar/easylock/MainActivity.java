@@ -1,6 +1,7 @@
 package com.sagar.easylock;
 
 import android.annotation.TargetApi;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -8,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -17,21 +19,37 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.sagar.easylock.drawables.CheckMarkView;
+import com.sagar.easylock.iab_util.IabHelper;
+import com.sagar.easylock.iab_util.IabResult;
+import com.sagar.easylock.iab_util.InAppBillingPublicKey;
+import com.sagar.easylock.iab_util.Inventory;
+import com.sagar.easylock.iab_util.Purchase;
 import com.sagar.easylock.screenlock.AdminActions;
 import com.sagar.easylock.service.EasyLockService;
 
+import java.util.Date;
+
+import eu.chainfire.libsuperuser.Shell;
+
+import static android.widget.Toast.LENGTH_SHORT;
 import static com.sagar.easylock.PreferencesHelper.KEY_DETECT_SOFT_KEY;
+import static com.sagar.easylock.PreferencesHelper.KEY_DOUBLE_TAP_TIMEOUT;
+import static com.sagar.easylock.PreferencesHelper.KEY_HAS_VIEWED_INTRO;
 import static com.sagar.easylock.PreferencesHelper.KEY_MASTER_SWITCH_ON;
 import static com.sagar.easylock.PreferencesHelper.KEY_SHOW_NOTIFICATION;
 import static com.sagar.easylock.PreferencesHelper.KEY_START_ON_BOOT;
+import static com.sagar.easylock.PreferencesHelper.KEY_SUPPORT_SMART_LOCK;
 import static com.sagar.easylock.service.EasyLockService.ACTION_START_OVERLAY;
 import static com.sagar.easylock.service.EasyLockService.ACTION_STOP_OVERLAY;
 
@@ -41,14 +59,89 @@ public class MainActivity extends AppCompatActivity {
     private SwitchCompat masterSwitch;
     private CheckBox avoidSoftkeyCheckBox;
 
+    private long lastTapTime=0;
+
+    // Globals related to IAB
+    private IabHelper mHelper;
+    boolean mHasDonated = false;
+    static final String SKU_DONATE = "com.sagar.easylock.donate"; //"android.test.purchased"; //
+    // (arbitrary) request code for the purchase flow
+    static final int RC_REQUEST = 10001;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //Show intro if it has not been shown yet
+        if (!PreferencesHelper.getBoolPreference(this, KEY_HAS_VIEWED_INTRO)) {
+            //Log.d("EasyLock", "Intro");
+            showIntro();
+        }
         AdminActions.initAdmin(this);
         setContentView(R.layout.activity_main);
         saveStatusBarHeight();
         setUpToolbar();
+        setUpMoreCard();
+        setUpIAB();
     }
+
+    private void setUpIAB() {
+        String base64EncodedPublicKey = InAppBillingPublicKey.getPublicKey();
+
+        // compute your public key and store it in base64EncodedPublicKey
+        mHelper = new IabHelper(this, base64EncodedPublicKey);
+        mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+            public void onIabSetupFinished(IabResult result) {
+                if (!result.isSuccess()) {
+                    // Oh noes, there was a problem.
+                    Log.d("EasyLock", "Problem setting up In-app Billing: " + result);
+                    return;
+                }
+                // Hooray, IAB is fully set up!
+                // Have we been disposed of in the meantime? If so, quit.
+                if (mHelper == null) return;
+
+                // IAB is fully set up. Now, let's get an inventory of stuff we own.
+                Log.d("EasyLock", "Setup successful. Querying inventory.");
+                mHelper.queryInventoryAsync(mGotInventoryListener);
+            }
+        });
+    }
+
+    // Listener that's called when we finish querying the items and subscriptions we own
+    IabHelper.QueryInventoryFinishedListener mGotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
+        public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
+
+            // Have we been disposed of in the meantime? If so, quit.
+            if (mHelper == null) return;
+
+            // Is it a failure?
+            if (result.isFailure()) {
+                complain("Failed to query inventory: " + result);
+                return;
+            }
+
+            /*
+             * Check for items we own. Notice that for each purchase, we check
+             * the developer payload to see if it's correct! See
+             * verifyDeveloperPayload().
+             */
+
+            Purchase donatePurchase = inventory.getPurchase(SKU_DONATE);
+            mHasDonated = (donatePurchase != null);
+            if(mHasDonated) {
+                mHelper.consumeAsync(inventory.getPurchase(SKU_DONATE), mConsumeFinishedListener);
+            }
+        }
+    };
+
+    IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
+        public void onConsumeFinished(Purchase purchase, IabResult result) {
+            if(result.isSuccess()) {
+                Toast.makeText(MainActivity.this, "Thank you for your contribution. :)", LENGTH_SHORT).show();
+            }
+        }
+    };
 
     @Override
     protected void onResume() {
@@ -116,10 +209,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setUpOptions() {
+        setUpDoubleTapTimeoutControls();
         // Binding the views to objects
-        CheckBox startOnBootCheckBox      = (CheckBox) findViewById(R.id.checkBox_start_on_boot);
+        CheckBox startOnBootCheckBox      = (CheckBox) findViewById(R.id.checkBox_start_on_boot),
+                 showNotificationCheckBox = (CheckBox) findViewById(R.id.checkBox_show_notification),
+                 smartLockCheckBox        = (CheckBox) findViewById(R.id.checkBox_enable_smart_lock_support);
         avoidSoftkeyCheckBox = (CheckBox) findViewById(R.id.checkBox_avoid_soft_key);
-        CheckBox showNotificationCheckBox = (CheckBox) findViewById(R.id.checkBox_show_notification);
 
         // Loading the saved preferences
         startOnBootCheckBox.setChecked(
@@ -128,6 +223,20 @@ public class MainActivity extends AppCompatActivity {
                 PreferencesHelper.getBoolPreference(this, KEY_DETECT_SOFT_KEY));
         showNotificationCheckBox.setChecked(
                 PreferencesHelper.getBoolPreference(this, KEY_SHOW_NOTIFICATION, true));
+        smartLockCheckBox.setChecked(
+                PreferencesHelper.getBoolPreference(this, KEY_SUPPORT_SMART_LOCK));
+
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP || !Shell.SU.available()) {
+            smartLockCheckBox.setVisibility(View.GONE);
+            findViewById(R.id.separator_smart_lock).setVisibility(View.GONE);
+        } else {
+            smartLockCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                    PreferencesHelper.setPreference(MainActivity.this, KEY_SUPPORT_SMART_LOCK, b);
+                }
+            });
+        }
 
         // Listeners to validate and save data when preferences are changed.
         startOnBootCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -209,6 +318,131 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void setUpDoubleTapTimeoutControls() {
+
+        // Setting up the button to test double tap timeout
+        final CheckMarkView view = (CheckMarkView) findViewById(R.id.check_mark_test);
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                long currentTime = new Date().getTime();
+                int timeout = PreferencesHelper.getIntPreference(
+                        MainActivity.this,
+                        KEY_DOUBLE_TAP_TIMEOUT,
+                        200);
+                if (currentTime - lastTapTime <= timeout) {
+                    view.toggle();
+                    lastTapTime = 0;
+                } else {
+                    lastTapTime = currentTime;
+                }
+            }
+        });
+
+        // Setting up timout selection seekbar
+        // Minimum value is 100ms and maximum is 750ms
+
+        final int min = 100, max = 750;
+        SeekBar timeoutSeekBar = (SeekBar) findViewById(R.id.seek_bar_timeout);
+        final TextView labelTextView = (TextView) findViewById(R.id.text_view_double_tap_timeout);
+        timeoutSeekBar.setMax(max - min);
+        int currentValue = PreferencesHelper.getIntPreference(MainActivity.this,
+                KEY_DOUBLE_TAP_TIMEOUT, 200);
+        timeoutSeekBar.setProgress(currentValue - min);
+        labelTextView.setText(String.format("%s : %dms",
+                getString(R.string.double_tap_timeout), currentValue));
+        timeoutSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    PreferencesHelper.setPreference(MainActivity.this,
+                            KEY_DOUBLE_TAP_TIMEOUT, progress + min);
+                }
+                labelTextView.setText(String.format("%s : %dms",
+                        getString(R.string.double_tap_timeout), progress + min));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+    }
+
+    private void setUpMoreCard() {
+        findViewById(R.id.text_quick_intro).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showIntro();
+            }
+        });
+
+        findViewById(R.id.text_about).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this, AboutActivity.class));
+            }
+        });
+
+        findViewById(R.id.text_donate).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mHelper != null) {
+                    try {
+                        mHelper.launchPurchaseFlow(MainActivity.this, SKU_DONATE, RC_REQUEST, mPurchaseFinishedListener);
+                    } catch (IllegalStateException e) {
+                        complain(getString(R.string.prev_in_progress_try_later));
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "Cannot start in-app purchase.", LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        findViewById(R.id.text_share_app).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent sendIntent = new Intent();
+                sendIntent.setAction(Intent.ACTION_SEND);
+                sendIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_string) +
+                        " http://aravindsagar.github.io/EasyLock/");
+                sendIntent.setType("text/plain");
+                startActivity(Intent.createChooser(sendIntent, getResources().getText(R.string.send_to)));
+            }
+        });
+
+        findViewById(R.id.text_rate_review).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Uri uri = Uri.parse("market://details?id=" + MainActivity.this.getPackageName());
+                Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
+                // To count with Play market backstack, After pressing back button,
+                // to taken back to our application, we need to add following flags to intent.
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                    goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
+                            Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET |
+                            Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                } else {
+                    goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
+                            Intent.FLAG_ACTIVITY_NEW_DOCUMENT |
+                            Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                }
+                try {
+                    startActivity(goToMarket);
+                } catch (ActivityNotFoundException e) {
+                    startActivity(new Intent(Intent.ACTION_VIEW,
+                            Uri.parse("http://play.google.com/store/apps/details?id=" +
+                                    MainActivity.this.getPackageName())));
+                }
+            }
+        });
+    }
+
     private void showEnableUsageAccess() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP
                 || PreferencesHelper.hasUsageAccess(this)) {
@@ -250,35 +484,18 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    private void showIntro() {
+        startActivity(new Intent(this, IntroActivity.class)
+                .setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
+        overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out);
+    }
+
     private void disableService() {
         startService(new Intent(this, EasyLockService.class).setAction(ACTION_STOP_OVERLAY));
     }
 
     private void enableService() {
         startService(new Intent(this, EasyLockService.class).setAction(ACTION_START_OVERLAY));
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            startService(new Intent(this, EasyLockService.class).setAction(ACTION_STOP_OVERLAY));
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     private int getStatusBarHeight() {
@@ -293,6 +510,46 @@ public class MainActivity extends AppCompatActivity {
     private void saveStatusBarHeight() {
         int height = getStatusBarHeight();
         PreferencesHelper.setPreference(this, PreferencesHelper.KEY_STATUS_BAR_HEIGHT, height);
+    }
+    IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
+        public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
+            // if we were disposed of in the meantime, quit.
+            if (mHelper == null) return;
+
+            if (result.isFailure()) {
+                complain(getString(R.string.donate_failed_message));
+                return;
+            }
+            if(purchase.getSku().equals(SKU_DONATE)) {
+                mHelper.consumeAsync(purchase, mConsumeFinishedListener);
+            }
+        }
+    };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mHelper != null) {
+            try {
+                mHelper.dispose();
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            }
+        }
+        mHelper = null;
+    }
+
+    private void complain(String message) {
+        Log.e("EasyLock", "**** IAB Error: " + message);
+        alert("Error: " + message);
+    }
+
+    private void alert(String message) {
+        AlertDialog.Builder bld = new AlertDialog.Builder(this);
+        bld.setMessage(message);
+        bld.setNeutralButton("OK", null);
+        Log.d("EasyLock", "Showing alert dialog: " + message);
+        bld.create().show();
     }
 
     private BroadcastReceiver receiver = new BroadcastReceiver(){

@@ -30,7 +30,9 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import static com.sagar.easylock.PreferencesHelper.KEY_DETECT_SOFT_KEY;
+import static com.sagar.easylock.PreferencesHelper.KEY_DOUBLE_TAP_TIMEOUT;
 import static com.sagar.easylock.PreferencesHelper.KEY_MASTER_SWITCH_ON;
+import static com.sagar.easylock.PreferencesHelper.KEY_SUPPORT_SMART_LOCK;
 
 public class EasyLockService extends Service {
 
@@ -47,8 +49,9 @@ public class EasyLockService extends Service {
     private String firstTapPackage = "";
     private ActivityManager mActivityManager;
     UsageStatsManager mUsageStatsManager;
+    Handler handler;
 
-    private boolean avoidSoftkeys = false;
+    private boolean avoidSoftkeys = false, supportSmartLock = false;
 
     public EasyLockService() {}
 
@@ -115,7 +118,7 @@ public class EasyLockService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        loadPreferences();
+        handler = new Handler();
 
         mActivityManager = (ActivityManager) getBaseContext().getSystemService(Context.ACTIVITY_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
@@ -141,7 +144,8 @@ public class EasyLockService extends Service {
                     }
                 }
                 if(!filterTapped && (!avoidSoftkeys || firstTapPackage.equals(secondTapPackage))) {
-                    if(!RootHelper.lockNow() && !AdminActions.turnScreenOff()) {
+                    if(!(supportSmartLock && RootHelper.lockNow())
+                            && !AdminActions.turnScreenOff()) {
                         Toast.makeText(EasyLockService.this, R.string.enable_admin, Toast.LENGTH_SHORT).show();
                         postAdminEnableNotification();
                     }
@@ -158,7 +162,6 @@ public class EasyLockService extends Service {
 
             @Override
             public void onDoubleTap(OverlayBase receiver) {
-                Handler handler = new Handler();
                 if(receiver instanceof EasyLockOverlay){
                     handler.removeCallbacks(lockRunnable);
                     handler.postDelayed(lockRunnable, 10);
@@ -191,6 +194,8 @@ public class EasyLockService extends Service {
         filterOverlay = new EasyLockFilterOverlay(this,
                 (WindowManager) getSystemService(WINDOW_SERVICE), tapListener);
 
+        loadPreferences();
+
         PreferencesHelper.registerListener(new PreferencesHelper.PreferencesChangedListener() {
             @Override
             public void onPreferencesChanged() {
@@ -202,6 +207,10 @@ public class EasyLockService extends Service {
 
     private void loadPreferences() {
         avoidSoftkeys = PreferencesHelper.getBoolPreference(this, KEY_DETECT_SOFT_KEY);
+        supportSmartLock = PreferencesHelper.getBoolPreference(this, KEY_SUPPORT_SMART_LOCK);
+        int timeout = PreferencesHelper.getIntPreference(this, KEY_DOUBLE_TAP_TIMEOUT, 200);
+        filterOverlay.setDoubleTapTimeout(timeout);
+        lockOverlay.setDoubleTapTimeout(timeout);
     }
 
     @Override

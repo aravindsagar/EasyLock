@@ -63,8 +63,9 @@ public class EasyLockFilterOverlay extends OverlayBase {
         rootView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
+//                Log.d("EasyLock", "Overlay tapped: " + motionEvent.getX() + ", " + motionEvent.getY());
                 long currentEventTime = motionEvent.getEventTime();
-                if(currentEventTime-lastEventTime <= 200){
+                if(currentEventTime-lastEventTime <= getDoubleTapTimeout()){
                     onDoubleTap();
                 } else {
                     lastEventTime = currentEventTime;

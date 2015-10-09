@@ -20,6 +20,7 @@ public abstract class OverlayBase {
     private View layout;
     private WindowManager.LayoutParams params;
     private OnDoubleTapListener mListener;
+    private int mDoubleTapTimeout= 200;
 
     private boolean isAdded = false;
 
@@ -103,6 +104,14 @@ public abstract class OverlayBase {
         if(mListener != null){
             mListener.onFirstTap(this);
         }
+    }
+
+    public void setDoubleTapTimeout(int timeout) {
+        mDoubleTapTimeout = timeout;
+    }
+
+    protected int getDoubleTapTimeout() {
+        return mDoubleTapTimeout;
     }
 
     public interface OnDoubleTapListener {

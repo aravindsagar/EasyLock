@@ -5,7 +5,6 @@
         android:id="@+id/view_overlay"
         android:layout_width="10dp"
         android:layout_height="32dp"
-        android:background="#ff4444"
-        android:alpha="0.5"
+        android:background="@android:color/transparent"
         android:layout_alignParentTop="true"/>
 </RelativeLayout>
