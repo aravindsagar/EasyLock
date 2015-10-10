@@ -42,4 +42,7 @@
     <string name="send_to">Share EasyLock</string>
     <string name="donate_failed_message">Donate failed. Please try again.</string>
     <string name="prev_in_progress_try_later">Previous purchase is still being processed, please try after a few seconds.</string>
+    <string name="enable_draw_over">Please enable \'Draw over other apps\' permission for EasyLock.</string>
+    <string name="enable_draw_over_dialog">Easy Lock requires \'Draw over other apps\' permission. Please click OK, enable it, and click back to return to app.</string>
+    <string name="permission_required">Permission required</string>
 </resources>

@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -77,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
             //Log.d("EasyLock", "Intro");
             showIntro();
         }
+
         AdminActions.initAdmin(this);
         setContentView(R.layout.activity_main);
         saveStatusBarHeight();
@@ -146,6 +148,33 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        if(Build.VERSION.SDK_INT >= 23 && !Settings.canDrawOverlays(this)) {
+            new AlertDialog.Builder(this).setMessage(getString(R.string.enable_draw_over_dialog))
+                    .setTitle(getString(R.string.permission_required))
+                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        @TargetApi(Build.VERSION_CODES.M)
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                    Uri.parse("package:" + getPackageName()));
+                            startActivityForResult(intent, 10);
+                        }
+                    })
+                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Toast.makeText(MainActivity.this, R.string.enable_draw_over, LENGTH_SHORT)
+                                    .show();
+                            PreferencesHelper.setPreference(MainActivity.this,
+                                    KEY_MASTER_SWITCH_ON, false);
+                            finish();
+                        }
+                    })
+                    .show();
+
+        }
+
         setUpOptions();
         if(PreferencesHelper.getBoolPreference(this, KEY_CHECK_USAGE_ACCESS_ON_RESUME)) {
             if (PreferencesHelper.hasUsageAccess(this)) {
@@ -211,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
     private void setUpOptions() {
         setUpDoubleTapTimeoutControls();
         // Binding the views to objects
-        CheckBox startOnBootCheckBox      = (CheckBox) findViewById(R.id.checkBox_start_on_boot),
+        final CheckBox startOnBootCheckBox      = (CheckBox) findViewById(R.id.checkBox_start_on_boot),
                  showNotificationCheckBox = (CheckBox) findViewById(R.id.checkBox_show_notification),
                  smartLockCheckBox        = (CheckBox) findViewById(R.id.checkBox_enable_smart_lock_support);
         avoidSoftkeyCheckBox = (CheckBox) findViewById(R.id.checkBox_avoid_soft_key);
@@ -226,17 +255,30 @@ public class MainActivity extends AppCompatActivity {
         smartLockCheckBox.setChecked(
                 PreferencesHelper.getBoolPreference(this, KEY_SUPPORT_SMART_LOCK));
 
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP || !Shell.SU.available()) {
-            smartLockCheckBox.setVisibility(View.GONE);
-            findViewById(R.id.separator_smart_lock).setVisibility(View.GONE);
-        } else {
-            smartLockCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                    PreferencesHelper.setPreference(MainActivity.this, KEY_SUPPORT_SMART_LOCK, b);
+        smartLockCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                PreferencesHelper.setPreference(MainActivity.this, KEY_SUPPORT_SMART_LOCK, b);
+            }
+        });
+        smartLockCheckBox.setVisibility(View.GONE);
+        final View smartLockSeparator = findViewById(R.id.separator_smart_lock);
+        smartLockSeparator.setVisibility(View.GONE);
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && Shell.SU.available();
+            }
+
+            @Override
+            protected void onPostExecute(Boolean showSmartLock) {
+                super.onPostExecute(showSmartLock);
+                if(showSmartLock) {
+                    smartLockCheckBox.setVisibility(View.VISIBLE);
+                    smartLockSeparator.setVisibility(View.VISIBLE);
                 }
-            });
-        }
+            }
+        }.execute();
 
         // Listeners to validate and save data when preferences are changed.
         startOnBootCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

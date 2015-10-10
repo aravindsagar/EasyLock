@@ -114,6 +114,19 @@ public class EasyLockService extends Service {
         startForeground(1, notification);
     }
 
+    private void postDrawOverEnableNotification() {
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this);
+        PendingIntent settingsPi = PendingIntent.getActivity(this, 3, new Intent(this, MainActivity.class).
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP), PendingIntent.FLAG_UPDATE_CURRENT);
+        Notification notification = notificationBuilder
+                .setContentTitle(getString(R.string.app_name))
+                .setSmallIcon(R.drawable.ic_stat_notif_settings)
+                .setContentText(getString(R.string.enable_draw_over))
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setContentIntent(settingsPi).build();
+        startForeground(1, notification);
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -241,8 +254,16 @@ public class EasyLockService extends Service {
 
     private void start(boolean sendBroadcast) {
         PreferencesHelper.setPreference(this, KEY_MASTER_SWITCH_ON, true);
-        lockOverlay.execute();
-        filterOverlay.execute();
+        try {
+            lockOverlay.execute();
+            filterOverlay.execute();
+        } catch (SecurityException | WindowManager.BadTokenException e) {
+            e.printStackTrace();
+            Toast.makeText(this, R.string.enable_draw_over, Toast.LENGTH_SHORT).show();
+            postDrawOverEnableNotification();
+            PreferencesHelper.setPreference(this, KEY_MASTER_SWITCH_ON, false);
+            return;
+        }
         postNotification(getString(R.string.service_enabled), R.drawable.ic_stat_service_running);
         if(sendBroadcast) {
             LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(ACTION_START_OVERLAY));
