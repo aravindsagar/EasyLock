@@ -255,12 +255,6 @@ public class MainActivity extends AppCompatActivity {
         smartLockCheckBox.setChecked(
                 PreferencesHelper.getBoolPreference(this, KEY_SUPPORT_SMART_LOCK));
 
-        smartLockCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                PreferencesHelper.setPreference(MainActivity.this, KEY_SUPPORT_SMART_LOCK, b);
-            }
-        });
         smartLockCheckBox.setVisibility(View.GONE);
         final View smartLockSeparator = findViewById(R.id.separator_smart_lock);
         smartLockSeparator.setVisibility(View.GONE);
@@ -276,6 +270,12 @@ public class MainActivity extends AppCompatActivity {
                 if(showSmartLock) {
                     smartLockCheckBox.setVisibility(View.VISIBLE);
                     smartLockSeparator.setVisibility(View.VISIBLE);
+                    smartLockCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                            PreferencesHelper.setPreference(MainActivity.this, KEY_SUPPORT_SMART_LOCK, b);
+                        }
+                    });
                 }
             }
         }.execute();
@@ -466,6 +466,7 @@ public class MainActivity extends AppCompatActivity {
                 // To count with Play market backstack, After pressing back button,
                 // to taken back to our application, we need to add following flags to intent.
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                    //noinspection deprecation
                     goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
                             Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET |
                             Intent.FLAG_ACTIVITY_MULTIPLE_TASK);

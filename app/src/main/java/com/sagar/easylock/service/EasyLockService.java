@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -157,6 +158,7 @@ public class EasyLockService extends Service {
                     }
                 }
                 if(!filterTapped && (!avoidSoftkeys || firstTapPackage.equals(secondTapPackage))) {
+                    Log.d("EasyLockService", "Support smart lock: " + supportSmartLock);
                     if(!(supportSmartLock && RootHelper.lockNow())
                             && !AdminActions.turnScreenOff()) {
                         Toast.makeText(EasyLockService.this, R.string.enable_admin, Toast.LENGTH_SHORT).show();
@@ -301,6 +303,7 @@ public class EasyLockService extends Service {
                     mActivityManager.getRunningAppProcesses();
             foregroundTaskPackageName = tasks.get(0).processName;
         } else {
+            @SuppressWarnings("deprecation")
             ActivityManager.RunningTaskInfo foregroundTaskInfo = mActivityManager.getRunningTasks(1).get(0);
             foregroundTaskPackageName = foregroundTaskInfo.topActivity.getPackageName();
         }
