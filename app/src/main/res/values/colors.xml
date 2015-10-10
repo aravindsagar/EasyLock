@@ -11,5 +11,6 @@
     <color name="primary_text_default_material_light">#deffffff</color>
     <color name="green">#2E7D32</color>
     <color name="separator_color">#19454545</color>
+    <color name="activity_background">#eeeeee</color>
 
 </resources>

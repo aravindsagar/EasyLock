@@ -2,6 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/activity_background"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     tools:context=".MainActivity">
 
@@ -27,6 +28,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 card_view:cardCornerRadius="4dp"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
                 style="@style/CardStyle">
 
                 <LinearLayout
@@ -49,6 +51,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
+                        android:layout_marginStart="@dimen/activity_vertical_margin"
                         android:layout_marginLeft="@dimen/activity_vertical_margin">
                         <LinearLayout
                             android:layout_width="0dp"
@@ -101,6 +104,15 @@
                                 android:stateListAnimator="@anim/button_elevation"/>
                         </LinearLayout>
                     </LinearLayout>
+
+                    <View style="@style/SeparatorView"
+                        android:id="@+id/separator_avoid_lockscreen"/>
+
+                    <CheckBox
+                        android:layout_width="match_parent"
+                        android:text="@string/avoid_lockscreen"
+                        android:id="@+id/checkBox_avoid_lockscreen"
+                        style="@style/CardItemStyle"/>
 
                     <View style="@style/SeparatorView" />
 
@@ -202,6 +214,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 card_view:cardCornerRadius="4dp"
+                android:layout_marginBottom="@dimen/activity_vertical_margin"
                 style="@style/CardStyle">
                 <LinearLayout
                     android:layout_width="match_parent"

@@ -35,6 +35,7 @@ public class PreferencesHelper {
     public static final String KEY_SHOW_NOTIFICATION  = "show_notification";
     public static final String KEY_START_ON_BOOT      = "start_on_boot";
     public static final String KEY_DETECT_SOFT_KEY    = "avoid_softkeys";
+    public static final String KEY_AVOID_LOCKSCREEN   = "avoid_lockscreen";
     public static final String KEY_SUPPORT_SMART_LOCK = "support_smart_lock";
     public static final String KEY_DOUBLE_TAP_TIMEOUT = "double_tap_timeout";
     public static final String KEY_HAS_VIEWED_INTRO   = "has_viewed_intro";

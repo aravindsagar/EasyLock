@@ -1,6 +1,7 @@
 package com.sagar.easylock.service;
 
 import android.app.ActivityManager;
+import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -13,7 +14,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import static com.sagar.easylock.PreferencesHelper.KEY_AVOID_LOCKSCREEN;
 import static com.sagar.easylock.PreferencesHelper.KEY_DETECT_SOFT_KEY;
 import static com.sagar.easylock.PreferencesHelper.KEY_DOUBLE_TAP_TIMEOUT;
 import static com.sagar.easylock.PreferencesHelper.KEY_MASTER_SWITCH_ON;
@@ -51,8 +52,9 @@ public class EasyLockService extends Service {
     private ActivityManager mActivityManager;
     UsageStatsManager mUsageStatsManager;
     Handler handler;
+    KeyguardManager mKeyguardManager;
 
-    private boolean avoidSoftkeys = false, supportSmartLock = false;
+    private boolean avoidSoftkeys = false, supportSmartLock = false, avoidLockscreen = false;
 
     public EasyLockService() {}
 
@@ -138,6 +140,7 @@ public class EasyLockService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
             mUsageStatsManager = (UsageStatsManager) this.getSystemService(Context.USAGE_STATS_SERVICE);
         }
+        mKeyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
 
         final Runnable lockRunnable = new Runnable() {
             @Override
@@ -158,7 +161,12 @@ public class EasyLockService extends Service {
                     }
                 }
                 if(!filterTapped && (!avoidSoftkeys || firstTapPackage.equals(secondTapPackage))) {
-                    Log.d("EasyLockService", "Support smart lock: " + supportSmartLock);
+//                    Log.d("EasyLockService", "Support smart lock: " + supportSmartLock);
+                    if(avoidLockscreen
+                            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN
+                            && mKeyguardManager.isKeyguardLocked()) {
+                        return;
+                    }
                     if(!(supportSmartLock && RootHelper.lockNow())
                             && !AdminActions.turnScreenOff()) {
                         Toast.makeText(EasyLockService.this, R.string.enable_admin, Toast.LENGTH_SHORT).show();
@@ -221,8 +229,10 @@ public class EasyLockService extends Service {
     }
 
     private void loadPreferences() {
-        avoidSoftkeys = PreferencesHelper.getBoolPreference(this, KEY_DETECT_SOFT_KEY);
+        avoidSoftkeys    = PreferencesHelper.getBoolPreference(this, KEY_DETECT_SOFT_KEY);
         supportSmartLock = PreferencesHelper.getBoolPreference(this, KEY_SUPPORT_SMART_LOCK);
+        avoidLockscreen  = PreferencesHelper.getBoolPreference(this, KEY_AVOID_LOCKSCREEN);
+
         int timeout = PreferencesHelper.getIntPreference(this, KEY_DOUBLE_TAP_TIMEOUT, 200);
         filterOverlay.setDoubleTapTimeout(timeout);
         lockOverlay.setDoubleTapTimeout(timeout);

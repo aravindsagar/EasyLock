@@ -44,13 +44,18 @@ import java.util.Date;
 import eu.chainfire.libsuperuser.Shell;
 
 import static android.widget.Toast.LENGTH_SHORT;
+import static com.sagar.easylock.PreferencesHelper.KEY_AVOID_LOCKSCREEN;
 import static com.sagar.easylock.PreferencesHelper.KEY_DETECT_SOFT_KEY;
 import static com.sagar.easylock.PreferencesHelper.KEY_DOUBLE_TAP_TIMEOUT;
 import static com.sagar.easylock.PreferencesHelper.KEY_HAS_VIEWED_INTRO;
 import static com.sagar.easylock.PreferencesHelper.KEY_MASTER_SWITCH_ON;
 import static com.sagar.easylock.PreferencesHelper.KEY_SHOW_NOTIFICATION;
 import static com.sagar.easylock.PreferencesHelper.KEY_START_ON_BOOT;
+import static com.sagar.easylock.PreferencesHelper.KEY_STATUS_BAR_HEIGHT;
 import static com.sagar.easylock.PreferencesHelper.KEY_SUPPORT_SMART_LOCK;
+import static com.sagar.easylock.PreferencesHelper.getBoolPreference;
+import static com.sagar.easylock.PreferencesHelper.getIntPreference;
+import static com.sagar.easylock.PreferencesHelper.setPreference;
 import static com.sagar.easylock.service.EasyLockService.ACTION_START_OVERLAY;
 import static com.sagar.easylock.service.EasyLockService.ACTION_STOP_OVERLAY;
 
@@ -74,8 +79,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         //Show intro if it has not been shown yet
-        if (!PreferencesHelper.getBoolPreference(this, KEY_HAS_VIEWED_INTRO)) {
+        if (!getBoolPreference(this, KEY_HAS_VIEWED_INTRO)) {
             //Log.d("EasyLock", "Intro");
+            setPreference(this, KEY_SUPPORT_SMART_LOCK, false);
+            setPreference(this, KEY_AVOID_LOCKSCREEN, false);
             showIntro();
         }
 
@@ -166,8 +173,7 @@ public class MainActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialogInterface, int i) {
                             Toast.makeText(MainActivity.this, R.string.enable_draw_over, LENGTH_SHORT)
                                     .show();
-                            PreferencesHelper.setPreference(MainActivity.this,
-                                    KEY_MASTER_SWITCH_ON, false);
+                            setPreference(MainActivity.this, KEY_MASTER_SWITCH_ON, false);
                             finish();
                         }
                     })
@@ -176,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         setUpOptions();
-        if(PreferencesHelper.getBoolPreference(this, KEY_CHECK_USAGE_ACCESS_ON_RESUME)) {
+        if(getBoolPreference(this, KEY_CHECK_USAGE_ACCESS_ON_RESUME)) {
             if (PreferencesHelper.hasUsageAccess(this)) {
                 avoidSoftkeyCheckBox.setChecked(true);
             } else {
@@ -185,13 +191,13 @@ public class MainActivity extends AppCompatActivity {
                         R.string.message_enable_usage_access_for_per_app_profiles,
                         Toast.LENGTH_SHORT).show();
             }
-            PreferencesHelper.setPreference(this, KEY_CHECK_USAGE_ACCESS_ON_RESUME, false);
+            setPreference(this, KEY_CHECK_USAGE_ACCESS_ON_RESUME, false);
         }
         IntentFilter filter = new IntentFilter(ACTION_START_OVERLAY);
         filter.addAction(EasyLockService.ACTION_STOP_OVERLAY);
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(receiver, filter);
 
-        boolean masterSwitchOn = PreferencesHelper.getBoolPreference(this, KEY_MASTER_SWITCH_ON);
+        boolean masterSwitchOn = getBoolPreference(this, KEY_MASTER_SWITCH_ON);
         if(masterSwitch.isChecked() == masterSwitchOn){
             if(masterSwitchOn) enableService();
             else disableService();
@@ -228,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
             params.setMargins(0,0,(int) getResources().getDimension(R.dimen.activity_vertical_margin),0);
         }
         toolbar.addView(masterSwitch, params);
-        boolean masterSwitchOn = PreferencesHelper.getBoolPreference(this, KEY_MASTER_SWITCH_ON);
+        boolean masterSwitchOn = getBoolPreference(this, KEY_MASTER_SWITCH_ON);
         if(masterSwitch.isChecked() == masterSwitchOn){
             if(masterSwitchOn) enableService();
             else disableService();
@@ -240,20 +246,18 @@ public class MainActivity extends AppCompatActivity {
     private void setUpOptions() {
         setUpDoubleTapTimeoutControls();
         // Binding the views to objects
-        final CheckBox startOnBootCheckBox      = (CheckBox) findViewById(R.id.checkBox_start_on_boot),
-                 showNotificationCheckBox = (CheckBox) findViewById(R.id.checkBox_show_notification),
-                 smartLockCheckBox        = (CheckBox) findViewById(R.id.checkBox_enable_smart_lock_support);
+        final CheckBox startOnBootCheckBox = (CheckBox) findViewById(R.id.checkBox_start_on_boot),
+                 showNotificationCheckBox  = (CheckBox) findViewById(R.id.checkBox_show_notification),
+                 smartLockCheckBox         = (CheckBox) findViewById(R.id.checkBox_enable_smart_lock_support),
+                 avoidLockscreenCheckBox   = (CheckBox) findViewById(R.id.checkBox_avoid_lockscreen);
         avoidSoftkeyCheckBox = (CheckBox) findViewById(R.id.checkBox_avoid_soft_key);
 
         // Loading the saved preferences
-        startOnBootCheckBox.setChecked(
-                PreferencesHelper.getBoolPreference(this, KEY_START_ON_BOOT, true));
-        avoidSoftkeyCheckBox.setChecked(
-                PreferencesHelper.getBoolPreference(this, KEY_DETECT_SOFT_KEY));
-        showNotificationCheckBox.setChecked(
-                PreferencesHelper.getBoolPreference(this, KEY_SHOW_NOTIFICATION, true));
-        smartLockCheckBox.setChecked(
-                PreferencesHelper.getBoolPreference(this, KEY_SUPPORT_SMART_LOCK));
+        startOnBootCheckBox.setChecked(getBoolPreference(this, KEY_START_ON_BOOT, true));
+        avoidSoftkeyCheckBox.setChecked(getBoolPreference(this, KEY_DETECT_SOFT_KEY));
+        showNotificationCheckBox.setChecked(getBoolPreference(this, KEY_SHOW_NOTIFICATION, true));
+        smartLockCheckBox.setChecked(getBoolPreference(this, KEY_SUPPORT_SMART_LOCK));
+        avoidLockscreenCheckBox.setChecked(getBoolPreference(this, KEY_AVOID_LOCKSCREEN));
 
         smartLockCheckBox.setVisibility(View.GONE);
         final View smartLockSeparator = findViewById(R.id.separator_smart_lock);
@@ -273,7 +277,7 @@ public class MainActivity extends AppCompatActivity {
                     smartLockCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
                         public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            PreferencesHelper.setPreference(MainActivity.this, KEY_SUPPORT_SMART_LOCK, b);
+                            setPreference(MainActivity.this, KEY_SUPPORT_SMART_LOCK, b);
                         }
                     });
                 }
@@ -284,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
         startOnBootCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                PreferencesHelper.setPreference(MainActivity.this, KEY_START_ON_BOOT, b);
+                setPreference(MainActivity.this, KEY_START_ON_BOOT, b);
             }
         });
 
@@ -299,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
                                         @Override
                                         public void onClick(DialogInterface dialogInterface, int i) {
                                             compoundButton.setChecked(false);
-                                            PreferencesHelper.setPreference(MainActivity.this,
+                                            setPreference(MainActivity.this,
                                                     KEY_DETECT_SOFT_KEY,
                                                     false);
                                         }
@@ -312,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
                                                     && !PreferencesHelper.hasUsageAccess(MainActivity.this)) {
                                                 showEnableUsageAccess();
                                             } else {
-                                                PreferencesHelper.setPreference(MainActivity.this,
+                                                setPreference(MainActivity.this,
                                                         KEY_DETECT_SOFT_KEY,
                                                         true);
                                             }
@@ -321,7 +325,7 @@ public class MainActivity extends AppCompatActivity {
                             .setCancelable(false)
                             .show();
                 } else {
-                    PreferencesHelper.setPreference(MainActivity.this, KEY_DETECT_SOFT_KEY, false);
+                    setPreference(MainActivity.this, KEY_DETECT_SOFT_KEY, false);
                 }
 
             }
@@ -337,27 +341,38 @@ public class MainActivity extends AppCompatActivity {
                             .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
-                                    PreferencesHelper.setPreference(MainActivity.this,
-                                            KEY_SHOW_NOTIFICATION,
-                                            false);
+                                    setPreference(MainActivity.this, KEY_SHOW_NOTIFICATION, false);
                                 }
                             })
                             .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
-                                    PreferencesHelper.setPreference(MainActivity.this,
-                                            KEY_SHOW_NOTIFICATION,
-                                            true);
+                                    setPreference(MainActivity.this, KEY_SHOW_NOTIFICATION, true);
                                     compoundButton.setChecked(true);
                                 }
                             })
                             .setCancelable(false)
                             .show();
                 } else {
-                    PreferencesHelper.setPreference(MainActivity.this, KEY_SHOW_NOTIFICATION, true);
+                    setPreference(MainActivity.this, KEY_SHOW_NOTIFICATION, true);
                 }
             }
         });
+
+        View avoidLockscreenSeparator = findViewById(R.id.separator_avoid_lockscreen);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            avoidLockscreenCheckBox.setVisibility(View.VISIBLE);
+            avoidLockscreenSeparator.setVisibility(View.VISIBLE);
+            avoidLockscreenCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                    setPreference(MainActivity.this, KEY_AVOID_LOCKSCREEN, b);
+                }
+            });
+        } else {
+            avoidLockscreenCheckBox.setVisibility(View.GONE);
+            avoidLockscreenSeparator.setVisibility(View.GONE);
+        }
     }
 
     private void setUpDoubleTapTimeoutControls() {
@@ -368,10 +383,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 long currentTime = new Date().getTime();
-                int timeout = PreferencesHelper.getIntPreference(
-                        MainActivity.this,
-                        KEY_DOUBLE_TAP_TIMEOUT,
-                        200);
+                int timeout = getIntPreference(MainActivity.this, KEY_DOUBLE_TAP_TIMEOUT, 200);
                 if (currentTime - lastTapTime <= timeout) {
                     view.toggle();
                     lastTapTime = 0;
@@ -388,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
         SeekBar timeoutSeekBar = (SeekBar) findViewById(R.id.seek_bar_timeout);
         final TextView labelTextView = (TextView) findViewById(R.id.text_view_double_tap_timeout);
         timeoutSeekBar.setMax(max - min);
-        int currentValue = PreferencesHelper.getIntPreference(MainActivity.this,
+        int currentValue = getIntPreference(MainActivity.this,
                 KEY_DOUBLE_TAP_TIMEOUT, 200);
         timeoutSeekBar.setProgress(currentValue - min);
         labelTextView.setText(String.format("%s : %dms",
@@ -397,8 +409,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
-                    PreferencesHelper.setPreference(MainActivity.this,
-                            KEY_DOUBLE_TAP_TIMEOUT, progress + min);
+                    setPreference(MainActivity.this, KEY_DOUBLE_TAP_TIMEOUT, progress + min);
                 }
                 labelTextView.setText(String.format("%s : %dms",
                         getString(R.string.double_tap_timeout), progress + min));
@@ -508,10 +519,7 @@ public class MainActivity extends AppCompatActivity {
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
                         }
-                        PreferencesHelper.setPreference(
-                                MainActivity.this,
-                                KEY_CHECK_USAGE_ACCESS_ON_RESUME,
-                                true);
+                        setPreference(MainActivity.this, KEY_CHECK_USAGE_ACCESS_ON_RESUME, true);
                     }
                 })
                 .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
@@ -552,7 +560,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void saveStatusBarHeight() {
         int height = getStatusBarHeight();
-        PreferencesHelper.setPreference(this, PreferencesHelper.KEY_STATUS_BAR_HEIGHT, height);
+        setPreference(this, KEY_STATUS_BAR_HEIGHT, height);
     }
     IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
         public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
