@@ -164,7 +164,7 @@ public class EasyLockService extends Service {
                         }
                     }
                 }
-                if(!(!touchAnywhere && filterTapped) /* If touch anywhere is enabled, we don't want to filter any touches */
+                if(!filterTapped /*!(!touchAnywhere && filterTapped)  If touch anywhere is enabled, we don't want to filter any touches */
                         && (!avoidSoftkeys || firstTapPackage.equals(secondTapPackage))) {
 //                    Log.d("EasyLockService", "Support smart lock: " + supportSmartLock);
                     if(avoidLockscreen
