@@ -51,7 +51,8 @@ public class AdminActions extends DeviceAdminReceiver {
         return mDPM != null && mDeviceAdmin != null && mDPM.isAdminActive(mDeviceAdmin);
     }
 
-    public static boolean turnScreenOff(){
+    public static boolean turnScreenOff(Context context){
+        initializeAdminObjects(context);
         if(isAdminEnabled()){
             mDPM.lockNow();
             return true;

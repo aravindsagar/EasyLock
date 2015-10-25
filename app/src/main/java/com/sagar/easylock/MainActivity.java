@@ -53,6 +53,7 @@ import static com.sagar.easylock.PreferencesHelper.KEY_SHOW_NOTIFICATION;
 import static com.sagar.easylock.PreferencesHelper.KEY_START_ON_BOOT;
 import static com.sagar.easylock.PreferencesHelper.KEY_STATUS_BAR_HEIGHT;
 import static com.sagar.easylock.PreferencesHelper.KEY_SUPPORT_SMART_LOCK;
+import static com.sagar.easylock.PreferencesHelper.KEY_TOUCH_ANYWHERE;
 import static com.sagar.easylock.PreferencesHelper.getBoolPreference;
 import static com.sagar.easylock.PreferencesHelper.getIntPreference;
 import static com.sagar.easylock.PreferencesHelper.setPreference;
@@ -249,7 +250,8 @@ public class MainActivity extends AppCompatActivity {
         final CheckBox startOnBootCheckBox = (CheckBox) findViewById(R.id.checkBox_start_on_boot),
                  showNotificationCheckBox  = (CheckBox) findViewById(R.id.checkBox_show_notification),
                  smartLockCheckBox         = (CheckBox) findViewById(R.id.checkBox_enable_smart_lock_support),
-                 avoidLockscreenCheckBox   = (CheckBox) findViewById(R.id.checkBox_avoid_lockscreen);
+                 avoidLockscreenCheckBox   = (CheckBox) findViewById(R.id.checkBox_avoid_lockscreen),
+                 touchAnywhereCheckbox     = (CheckBox) findViewById(R.id.checkBox_touch_anywhere);
         avoidSoftkeyCheckBox = (CheckBox) findViewById(R.id.checkBox_avoid_soft_key);
 
         // Loading the saved preferences
@@ -258,6 +260,7 @@ public class MainActivity extends AppCompatActivity {
         showNotificationCheckBox.setChecked(getBoolPreference(this, KEY_SHOW_NOTIFICATION, true));
         smartLockCheckBox.setChecked(getBoolPreference(this, KEY_SUPPORT_SMART_LOCK));
         avoidLockscreenCheckBox.setChecked(getBoolPreference(this, KEY_AVOID_LOCKSCREEN));
+        touchAnywhereCheckbox.setChecked(getBoolPreference(this, KEY_TOUCH_ANYWHERE));
 
         smartLockCheckBox.setVisibility(View.GONE);
         final View smartLockSeparator = findViewById(R.id.separator_smart_lock);
@@ -373,6 +376,39 @@ public class MainActivity extends AppCompatActivity {
             avoidLockscreenCheckBox.setVisibility(View.GONE);
             avoidLockscreenSeparator.setVisibility(View.GONE);
         }
+
+        touchAnywhereCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(final CompoundButton compoundButton, boolean b) {
+                if (b) {
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setMessage(getString(R.string.warning_touch_anywhere))
+                            .setNegativeButton(getString(R.string.no),
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            compoundButton.setChecked(false);
+                                            setPreference(MainActivity.this,
+                                                    KEY_TOUCH_ANYWHERE,
+                                                    false);
+                                        }
+                                    })
+                            .setPositiveButton(getString(R.string.yes),
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            setPreference(MainActivity.this,
+                                                    KEY_TOUCH_ANYWHERE,
+                                                    true);
+                                        }
+                                    })
+                            .setCancelable(false)
+                            .show();
+                } else {
+                    setPreference(MainActivity.this, KEY_TOUCH_ANYWHERE, false);
+                }
+            }
+        });
     }
 
     private void setUpDoubleTapTimeoutControls() {

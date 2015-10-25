@@ -35,6 +35,7 @@ import static com.sagar.easylock.PreferencesHelper.KEY_DETECT_SOFT_KEY;
 import static com.sagar.easylock.PreferencesHelper.KEY_DOUBLE_TAP_TIMEOUT;
 import static com.sagar.easylock.PreferencesHelper.KEY_MASTER_SWITCH_ON;
 import static com.sagar.easylock.PreferencesHelper.KEY_SUPPORT_SMART_LOCK;
+import static com.sagar.easylock.PreferencesHelper.KEY_TOUCH_ANYWHERE;
 
 public class EasyLockService extends Service {
 
@@ -54,7 +55,10 @@ public class EasyLockService extends Service {
     Handler handler;
     KeyguardManager mKeyguardManager;
 
-    private boolean avoidSoftkeys = false, supportSmartLock = false, avoidLockscreen = false;
+    private boolean avoidSoftkeys    = false,
+                    supportSmartLock = false,
+                    avoidLockscreen  = false,
+                    touchAnywhere    = false;
 
     public EasyLockService() {}
 
@@ -160,15 +164,16 @@ public class EasyLockService extends Service {
                         }
                     }
                 }
-                if(!filterTapped && (!avoidSoftkeys || firstTapPackage.equals(secondTapPackage))) {
+                if(!(!touchAnywhere && filterTapped) /* If touch anywhere is enabled, we don't want to filter any touches */
+                        && (!avoidSoftkeys || firstTapPackage.equals(secondTapPackage))) {
 //                    Log.d("EasyLockService", "Support smart lock: " + supportSmartLock);
                     if(avoidLockscreen
                             && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN
                             && mKeyguardManager.isKeyguardLocked()) {
                         return;
                     }
-                    if(!(supportSmartLock && RootHelper.lockNow())
-                            && !AdminActions.turnScreenOff()) {
+                    if(!(supportSmartLock && RootHelper.lockNow())  /* Try root method if smart lock has to be supported */
+                            && !AdminActions.turnScreenOff(EasyLockService.this)) { /* Else, using device admin */
                         Toast.makeText(EasyLockService.this, R.string.enable_admin, Toast.LENGTH_SHORT).show();
                         postAdminEnableNotification();
                     }
@@ -232,6 +237,7 @@ public class EasyLockService extends Service {
         avoidSoftkeys    = PreferencesHelper.getBoolPreference(this, KEY_DETECT_SOFT_KEY);
         supportSmartLock = PreferencesHelper.getBoolPreference(this, KEY_SUPPORT_SMART_LOCK);
         avoidLockscreen  = PreferencesHelper.getBoolPreference(this, KEY_AVOID_LOCKSCREEN);
+        touchAnywhere    = PreferencesHelper.getBoolPreference(this, KEY_TOUCH_ANYWHERE);
 
         int timeout = PreferencesHelper.getIntPreference(this, KEY_DOUBLE_TAP_TIMEOUT, 200);
         filterOverlay.setDoubleTapTimeout(timeout);

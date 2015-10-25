@@ -46,4 +46,6 @@
     <string name="enable_draw_over_dialog">Easy Lock requires \'Draw over other apps\' permission. Please click OK, enable it, and click back to return to app.</string>
     <string name="permission_required">Permission required</string>
     <string name="avoid_lockscreen">Avoid lockscreen touches</string>
+    <string name="warning_touch_anywhere">If you enable this, double tapping anywhere on the screen will turn the screen off. This can potentially interfere with other actions like double tap to zoom.\n\nIf you leave this option off, screen will be turned off only when you double tap status bar, nav bar etc. \n\nAre you sure you want to enable this?</string>
+    <string name="touch_anywhere">Double tap anywhere to lock</string>
 </resources>

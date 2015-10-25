@@ -39,6 +39,7 @@ public class PreferencesHelper {
     public static final String KEY_SUPPORT_SMART_LOCK = "support_smart_lock";
     public static final String KEY_DOUBLE_TAP_TIMEOUT = "double_tap_timeout";
     public static final String KEY_HAS_VIEWED_INTRO   = "has_viewed_intro";
+    public static final String KEY_TOUCH_ANYWHERE     = "touch_anywhere";
 
     public static void setPreference(Context context, final String KEY, boolean value){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
