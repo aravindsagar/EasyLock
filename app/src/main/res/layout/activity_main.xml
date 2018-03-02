@@ -118,6 +118,14 @@
 
                     <CheckBox
                         android:layout_width="match_parent"
+                        android:text="@string/double_tap_homescreen"
+                        android:id="@+id/checkBox_touch_home"
+                        style="@style/CardItemStyle"/>
+
+                    <View style="@style/SeparatorView" />
+
+                    <CheckBox
+                        android:layout_width="match_parent"
                         android:text="@string/avoid_lockscreen"
                         android:id="@+id/checkBox_avoid_lockscreen"
                         style="@style/CardItemStyle"/>
@@ -252,12 +260,6 @@
                             android:id="@+id/text_rate_review"
                             android:drawableTop="@drawable/ic_rate_review_black_24dp"
                             android:text="@string/rate_review"
-                            style="@style/LikeAppTextView" />
-
-                        <TextView
-                            android:id="@+id/text_donate"
-                            android:drawableTop="@drawable/ic_payment_black_24dp"
-                            android:text="@string/donate"
                             style="@style/LikeAppTextView" />
 
                     </LinearLayout>

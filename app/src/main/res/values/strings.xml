@@ -17,7 +17,7 @@
     <string name="no">No</string>
     <string name="warning_notification">If you disable EasyLock notification, Android system may end EasyLock in the background.\n\nIt is highly recommended that you keep notification enabled.\n\nAre you sure you want to disable the notification?</string>
     <string name="warning">Warning</string>
-    <string name="message_enable_usage_access">In order for Easy Lock to identify softkey presses, it should be granted Usage Access Permission. Click OK to go to Security settings, select \'Apps with usage access\' and enable Easy Lock there. After that please press back to return to Easy Lock.</string>
+    <string name="message_enable_usage_access">Easy Lock needs Usage Access Permission for this option. Click OK to go to Security settings, select \'Apps with usage access\' and enable Easy Lock there. After that please press back to return to Easy Lock.</string>
     <string name="heading_enable_usage_access">Please enable usage access</string>
     <string name="message_enable_usage_access_for_per_app_profiles">Please enable usage access to enable this option.</string>
     <string name="ok">OK</string>
@@ -30,11 +30,10 @@
     <string name="more">More</string>
     <string name="about">About</string>
     <string name="quick_intro">Quick Intro</string>
-    <string name="donate">Donate</string>
-    <string name="rate_review">Rate/review</string>
+    <string name="rate_review">Feedback</string>
     <string name="share_app">Share</string>
     <string name="double_tap_to_sleep">Double tap to sleep</string>
-    <string name="intro_text">Double tap your status bar / lock screen / notification shade to quickly lock your phone.\nReduce the power button usage.</string>
+    <string name="intro_text">Double tap your status bar / lock screen / notification shade to quickly lock your phone.\nReduce the power button usage.\n(This feature is not supported in Android 8 and above)</string>
     <string name="get_started">Get Started</string>
     <string name="like_this_app">Like this app?</string>
     <string name="title_activity_about">About</string>
@@ -48,4 +47,6 @@
     <string name="avoid_lockscreen">Avoid lockscreen touches</string>
     <string name="warning_touch_anywhere">If you enable this, double tapping anywhere on the screen will turn the screen off. This can potentially interfere with other actions like double tap to zoom.\n\nIf you leave this option off, screen will be turned off only when you double tap status bar, nav bar etc. \n\nAre you sure you want to enable this?</string>
     <string name="touch_anywhere">Double tap anywhere to lock</string>
+    <string name="error_open_webpage">Unable to open webpage</string>
+    <string name="double_tap_homescreen">Double tap anywhere in homescreen to lock</string>
 </resources>

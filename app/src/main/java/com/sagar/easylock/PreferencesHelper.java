@@ -3,11 +3,14 @@ package com.sagar.easylock;
 import android.annotation.TargetApi;
 import android.app.AppOpsManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.preference.PreferenceManager;
+
+import com.sagar.easylock.service.EasyLockService;
 
 import java.util.Collections;
 import java.util.Set;
@@ -40,23 +43,24 @@ public class PreferencesHelper {
     public static final String KEY_DOUBLE_TAP_TIMEOUT = "double_tap_timeout";
     public static final String KEY_HAS_VIEWED_INTRO   = "has_viewed_intro";
     public static final String KEY_TOUCH_ANYWHERE     = "touch_anywhere";
+    public static final String KEY_TOUCH_HOME         = "touch_home";
 
     public static void setPreference(Context context, final String KEY, boolean value){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         preferences.edit().putBoolean(KEY, value).apply();
-        callListeners();
+        callListeners(context);
     }
 
     public static void setPreference(Context context, final String KEY, int value){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         preferences.edit().putInt(KEY, value).apply();
-        callListeners();
+        callListeners(context);
     }
 
     public static void setPreference(Context context, final String KEY, long value){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         preferences.edit().putLong(KEY, value).apply();
-        callListeners();
+        callListeners(context);
     }
 
     public static boolean getBoolPreference(Context context, final String KEY){
@@ -83,7 +87,8 @@ public class PreferencesHelper {
         mListeners.add(listener);
     }
 
-    private static void callListeners(){
+    private static void callListeners(Context c){
+        c.startService(new Intent(c, EasyLockService.class).setAction(EasyLockService.ACTION_RELOAD_PREFS));
         for (PreferencesChangedListener listener : mListeners) {
             listener.onPreferencesChanged();
         }

@@ -31,11 +31,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sagar.easylock.drawables.CheckMarkView;
-import com.sagar.easylock.iab_util.IabHelper;
-import com.sagar.easylock.iab_util.IabResult;
-import com.sagar.easylock.iab_util.InAppBillingPublicKey;
-import com.sagar.easylock.iab_util.Inventory;
-import com.sagar.easylock.iab_util.Purchase;
 import com.sagar.easylock.screenlock.AdminActions;
 import com.sagar.easylock.service.EasyLockService;
 
@@ -54,6 +49,7 @@ import static com.sagar.easylock.PreferencesHelper.KEY_START_ON_BOOT;
 import static com.sagar.easylock.PreferencesHelper.KEY_STATUS_BAR_HEIGHT;
 import static com.sagar.easylock.PreferencesHelper.KEY_SUPPORT_SMART_LOCK;
 import static com.sagar.easylock.PreferencesHelper.KEY_TOUCH_ANYWHERE;
+import static com.sagar.easylock.PreferencesHelper.KEY_TOUCH_HOME;
 import static com.sagar.easylock.PreferencesHelper.getBoolPreference;
 import static com.sagar.easylock.PreferencesHelper.getIntPreference;
 import static com.sagar.easylock.PreferencesHelper.setPreference;
@@ -62,18 +58,13 @@ import static com.sagar.easylock.service.EasyLockService.ACTION_STOP_OVERLAY;
 
 public class MainActivity extends AppCompatActivity {
     private static final String KEY_CHECK_USAGE_ACCESS_ON_RESUME = "check_usage_access_on_resume";
+    private static final java.lang.String KEY_CHECK_USAGE_ACCESS_2_ON_RESUME = "check_usage_access_2_on_resume";
 
     private SwitchCompat masterSwitch;
     private CheckBox avoidSoftkeyCheckBox;
+    private CheckBox touchHomeCheckBox;
 
     private long lastTapTime=0;
-
-    // Globals related to IAB
-    private IabHelper mHelper;
-    boolean mHasDonated = false;
-    static final String SKU_DONATE = "com.sagar.easylock.donate"; //"android.test.purchased"; //
-    // (arbitrary) request code for the purchase flow
-    static final int RC_REQUEST = 10001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
             //Log.d("EasyLock", "Intro");
             setPreference(this, KEY_SUPPORT_SMART_LOCK, false);
             setPreference(this, KEY_AVOID_LOCKSCREEN, false);
+            setPreference(this, KEY_TOUCH_HOME, false);
             showIntro();
         }
 
@@ -92,66 +84,7 @@ public class MainActivity extends AppCompatActivity {
         saveStatusBarHeight();
         setUpToolbar();
         setUpMoreCard();
-        setUpIAB();
     }
-
-    private void setUpIAB() {
-        String base64EncodedPublicKey = InAppBillingPublicKey.getPublicKey();
-
-        // compute your public key and store it in base64EncodedPublicKey
-        mHelper = new IabHelper(this, base64EncodedPublicKey);
-        mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
-            public void onIabSetupFinished(IabResult result) {
-                if (!result.isSuccess()) {
-                    // Oh noes, there was a problem.
-                    Log.d("EasyLock", "Problem setting up In-app Billing: " + result);
-                    return;
-                }
-                // Hooray, IAB is fully set up!
-                // Have we been disposed of in the meantime? If so, quit.
-                if (mHelper == null) return;
-
-                // IAB is fully set up. Now, let's get an inventory of stuff we own.
-                Log.d("EasyLock", "Setup successful. Querying inventory.");
-                mHelper.queryInventoryAsync(mGotInventoryListener);
-            }
-        });
-    }
-
-    // Listener that's called when we finish querying the items and subscriptions we own
-    IabHelper.QueryInventoryFinishedListener mGotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
-        public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
-
-            // Have we been disposed of in the meantime? If so, quit.
-            if (mHelper == null) return;
-
-            // Is it a failure?
-            if (result.isFailure()) {
-                complain("Failed to query inventory: " + result);
-                return;
-            }
-
-            /*
-             * Check for items we own. Notice that for each purchase, we check
-             * the developer payload to see if it's correct! See
-             * verifyDeveloperPayload().
-             */
-
-            Purchase donatePurchase = inventory.getPurchase(SKU_DONATE);
-            mHasDonated = (donatePurchase != null);
-            if(mHasDonated) {
-                mHelper.consumeAsync(inventory.getPurchase(SKU_DONATE), mConsumeFinishedListener);
-            }
-        }
-    };
-
-    IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
-        public void onConsumeFinished(Purchase purchase, IabResult result) {
-            if(result.isSuccess()) {
-                Toast.makeText(MainActivity.this, "Thank you for your contribution. :)", LENGTH_SHORT).show();
-            }
-        }
-    };
 
     @Override
     protected void onResume() {
@@ -193,6 +126,17 @@ public class MainActivity extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
             }
             setPreference(this, KEY_CHECK_USAGE_ACCESS_ON_RESUME, false);
+        }
+        if(getBoolPreference(this, KEY_CHECK_USAGE_ACCESS_2_ON_RESUME)) {
+            if (PreferencesHelper.hasUsageAccess(this)) {
+                touchHomeCheckBox.setChecked(true);
+            } else {
+                touchHomeCheckBox.setChecked(false);
+                Toast.makeText(MainActivity.this,
+                        R.string.message_enable_usage_access_for_per_app_profiles,
+                        Toast.LENGTH_SHORT).show();
+            }
+            setPreference(this, KEY_CHECK_USAGE_ACCESS_2_ON_RESUME, false);
         }
         IntentFilter filter = new IntentFilter(ACTION_START_OVERLAY);
         filter.addAction(EasyLockService.ACTION_STOP_OVERLAY);
@@ -252,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
                  smartLockCheckBox         = (CheckBox) findViewById(R.id.checkBox_enable_smart_lock_support),
                  avoidLockscreenCheckBox   = (CheckBox) findViewById(R.id.checkBox_avoid_lockscreen),
                  touchAnywhereCheckbox     = (CheckBox) findViewById(R.id.checkBox_touch_anywhere);
+        touchHomeCheckBox         = (CheckBox) findViewById(R.id.checkBox_touch_home);
         avoidSoftkeyCheckBox = (CheckBox) findViewById(R.id.checkBox_avoid_soft_key);
 
         // Loading the saved preferences
@@ -261,6 +206,7 @@ public class MainActivity extends AppCompatActivity {
         smartLockCheckBox.setChecked(getBoolPreference(this, KEY_SUPPORT_SMART_LOCK));
         avoidLockscreenCheckBox.setChecked(getBoolPreference(this, KEY_AVOID_LOCKSCREEN));
         touchAnywhereCheckbox.setChecked(getBoolPreference(this, KEY_TOUCH_ANYWHERE));
+        touchHomeCheckBox.setChecked(getBoolPreference(this, KEY_TOUCH_HOME));
 
         smartLockCheckBox.setVisibility(View.GONE);
         final View smartLockSeparator = findViewById(R.id.separator_smart_lock);
@@ -317,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
                                         public void onClick(DialogInterface dialogInterface, int i) {
                                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
                                                     && !PreferencesHelper.hasUsageAccess(MainActivity.this)) {
-                                                showEnableUsageAccess();
+                                                showEnableUsageAccess(KEY_CHECK_USAGE_ACCESS_ON_RESUME, avoidSoftkeyCheckBox);
                                             } else {
                                                 setPreference(MainActivity.this,
                                                         KEY_DETECT_SOFT_KEY,
@@ -329,6 +275,25 @@ public class MainActivity extends AppCompatActivity {
                             .show();
                 } else {
                     setPreference(MainActivity.this, KEY_DETECT_SOFT_KEY, false);
+                }
+
+            }
+        });
+
+        touchHomeCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(final CompoundButton compoundButton, boolean b) {
+                if (b) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                            && !PreferencesHelper.hasUsageAccess(MainActivity.this)) {
+                        showEnableUsageAccess(KEY_CHECK_USAGE_ACCESS_2_ON_RESUME, touchHomeCheckBox);
+                    } else {
+                        setPreference(MainActivity.this,
+                                KEY_TOUCH_HOME,
+                                true);
+                    }
+                } else {
+                    setPreference(MainActivity.this, KEY_TOUCH_HOME, false);
                 }
 
             }
@@ -478,21 +443,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.text_donate).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(mHelper != null) {
-                    try {
-                        mHelper.launchPurchaseFlow(MainActivity.this, SKU_DONATE, RC_REQUEST, mPurchaseFinishedListener);
-                    } catch (IllegalStateException e) {
-                        complain(getString(R.string.prev_in_progress_try_later));
-                    }
-                } else {
-                    Toast.makeText(MainActivity.this, "Cannot start in-app purchase.", LENGTH_SHORT).show();
-                }
-            }
-        });
-
         findViewById(R.id.text_share_app).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -508,32 +458,31 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.text_rate_review).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Uri uri = Uri.parse("market://details?id=" + MainActivity.this.getPackageName());
-                Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
+                Uri uri = Uri.parse("https://forum.xda-developers.com/android/apps-games/" +
+                        "4-3-easy-lock-double-tap-status-bar-nav-t3222024");
+                Intent openForum = new Intent(Intent.ACTION_VIEW, uri);
                 // To count with Play market backstack, After pressing back button,
                 // to taken back to our application, we need to add following flags to intent.
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                     //noinspection deprecation
-                    goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
+                    openForum.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
                             Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET |
                             Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
                 } else {
-                    goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
+                    openForum.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
                             Intent.FLAG_ACTIVITY_NEW_DOCUMENT |
                             Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
                 }
                 try {
-                    startActivity(goToMarket);
+                    startActivity(openForum);
                 } catch (ActivityNotFoundException e) {
-                    startActivity(new Intent(Intent.ACTION_VIEW,
-                            Uri.parse("http://play.google.com/store/apps/details?id=" +
-                                    MainActivity.this.getPackageName())));
+                    Toast.makeText(MainActivity.this, R.string.error_open_webpage, Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
 
-    private void showEnableUsageAccess() {
+    private void showEnableUsageAccess(final String resumeKey, final CheckBox srcCheckBox) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP
                 || PreferencesHelper.hasUsageAccess(this)) {
             return;
@@ -555,7 +504,7 @@ public class MainActivity extends AppCompatActivity {
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
                         }
-                        setPreference(MainActivity.this, KEY_CHECK_USAGE_ACCESS_ON_RESUME, true);
+                        setPreference(MainActivity.this, resumeKey, true);
                     }
                 })
                 .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
@@ -564,7 +513,7 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(MainActivity.this,
                                 R.string.message_enable_usage_access_for_per_app_profiles,
                                 Toast.LENGTH_SHORT).show();
-                        avoidSoftkeyCheckBox.setChecked(false);
+                        srcCheckBox.setChecked(false);
                     }
                 })
                 .setCancelable(false)
@@ -597,33 +546,6 @@ public class MainActivity extends AppCompatActivity {
     private void saveStatusBarHeight() {
         int height = getStatusBarHeight();
         setPreference(this, KEY_STATUS_BAR_HEIGHT, height);
-    }
-    IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
-        public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
-            // if we were disposed of in the meantime, quit.
-            if (mHelper == null) return;
-
-            if (result.isFailure()) {
-                complain(getString(R.string.donate_failed_message));
-                return;
-            }
-            if(purchase.getSku().equals(SKU_DONATE)) {
-                mHelper.consumeAsync(purchase, mConsumeFinishedListener);
-            }
-        }
-    };
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mHelper != null) {
-            try {
-                mHelper.dispose();
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            }
-        }
-        mHelper = null;
     }
 
     private void complain(String message) {

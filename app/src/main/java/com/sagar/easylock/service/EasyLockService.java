@@ -1,5 +1,6 @@
 package com.sagar.easylock.service;
 
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.KeyguardManager;
 import android.app.Notification;
@@ -9,11 +10,13 @@ import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -36,6 +39,7 @@ import static com.sagar.easylock.PreferencesHelper.KEY_DOUBLE_TAP_TIMEOUT;
 import static com.sagar.easylock.PreferencesHelper.KEY_MASTER_SWITCH_ON;
 import static com.sagar.easylock.PreferencesHelper.KEY_SUPPORT_SMART_LOCK;
 import static com.sagar.easylock.PreferencesHelper.KEY_TOUCH_ANYWHERE;
+import static com.sagar.easylock.PreferencesHelper.KEY_TOUCH_HOME;
 
 public class EasyLockService extends Service {
 
@@ -43,6 +47,7 @@ public class EasyLockService extends Service {
     public static final String ACTION_STOP_OVERLAY      = "action_stop_overlay";
     public static final String ACTION_TOGGLE            = "action_toggle";
     public static final String ACTION_POST_NOTIFICATION = "action_post_notification";
+    public static final String ACTION_RELOAD_PREFS      = "action_reload_prefs";
 
     public static final String EXTRA_SEND_BROADCAST     = "send_broadcast";
 
@@ -58,7 +63,8 @@ public class EasyLockService extends Service {
     private boolean avoidSoftkeys    = false,
                     supportSmartLock = false,
                     avoidLockscreen  = false,
-                    touchAnywhere    = false;
+                    touchAnywhere    = false,
+                    touchHome        = false;
 
     public EasyLockService() {}
 
@@ -134,6 +140,7 @@ public class EasyLockService extends Service {
         startForeground(1, notification);
     }
 
+    @SuppressLint("WrongConstant")
     @Override
     public void onCreate() {
         super.onCreate();
@@ -150,7 +157,7 @@ public class EasyLockService extends Service {
             @Override
             public void run() {
                 String secondTapPackage = "";
-                if(avoidSoftkeys && !firstTapPackage.isEmpty()) {
+                if((avoidSoftkeys || touchHome) && !firstTapPackage.isEmpty()) {
                     int count = 0;
                     while (secondTapPackage.isEmpty()) {
                         secondTapPackage = getForegroundAppPackage();
@@ -164,14 +171,20 @@ public class EasyLockService extends Service {
                         }
                     }
                 }
-                if(!(!touchAnywhere && filterTapped) /* If touch anywhere is enabled, we don't want to filter any touches */
-                        && (!avoidSoftkeys || firstTapPackage.equals(secondTapPackage))) {
-//                    Log.d("EasyLockService", "Support smart lock: " + supportSmartLock);
-                    if(avoidLockscreen
-                            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN
-                            && mKeyguardManager.isKeyguardLocked()) {
-                        return;
-                    }
+                Log.d("touchHome", String.valueOf(touchHome));
+                // Lock if filter wasn't tapped.
+                boolean shouldLock = !filterTapped;
+                // However, don't check for filter if touch anywhere is enabled.
+                shouldLock = shouldLock || touchAnywhere;
+                // If touch home is enabled, then check whether current app is home irrespective of filter.
+                shouldLock = shouldLock || (touchHome && getForegroundAppPackage().equals(getHomePackage()));
+                // If avoid softkeys is enabled, check that.
+                shouldLock = shouldLock && (!avoidSoftkeys || firstTapPackage.equals(secondTapPackage));
+                // Check for lockscreen.
+                shouldLock = shouldLock && (!avoidLockscreen
+                        || Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN
+                        || !mKeyguardManager.isKeyguardLocked());
+                if (shouldLock) {
                     if(!(supportSmartLock && RootHelper.lockNow())  /* Try root method if smart lock has to be supported */
                             && !AdminActions.turnScreenOff(EasyLockService.this)) { /* Else, using device admin */
                         Toast.makeText(EasyLockService.this, R.string.enable_admin, Toast.LENGTH_SHORT).show();
@@ -202,7 +215,7 @@ public class EasyLockService extends Service {
 
             @Override
             public void onFirstTap(OverlayBase receiver) {
-                if(receiver instanceof EasyLockOverlay && avoidSoftkeys) {
+                if(receiver instanceof EasyLockOverlay && (avoidSoftkeys | touchHome)) {
                     int count = 0;
                     do {
                         firstTapPackage = getForegroundAppPackage();
@@ -233,11 +246,20 @@ public class EasyLockService extends Service {
         });
     }
 
+    private String getHomePackage() {
+        PackageManager localPackageManager = getPackageManager();
+        Intent intent = new Intent("android.intent.action.MAIN");
+        intent.addCategory("android.intent.category.HOME");
+        return localPackageManager.resolveActivity(intent,
+                PackageManager.MATCH_DEFAULT_ONLY).activityInfo.packageName;
+    }
+
     private void loadPreferences() {
         avoidSoftkeys    = PreferencesHelper.getBoolPreference(this, KEY_DETECT_SOFT_KEY);
         supportSmartLock = PreferencesHelper.getBoolPreference(this, KEY_SUPPORT_SMART_LOCK);
         avoidLockscreen  = PreferencesHelper.getBoolPreference(this, KEY_AVOID_LOCKSCREEN);
         touchAnywhere    = PreferencesHelper.getBoolPreference(this, KEY_TOUCH_ANYWHERE);
+        touchHome        = PreferencesHelper.getBoolPreference(this, KEY_TOUCH_HOME);
 
         int timeout = PreferencesHelper.getIntPreference(this, KEY_DOUBLE_TAP_TIMEOUT, 200);
         filterOverlay.setDoubleTapTimeout(timeout);
@@ -256,6 +278,8 @@ public class EasyLockService extends Service {
                 toggle();
             } else if(ACTION_POST_NOTIFICATION.equals(action)) {
                 postNotification();
+            } else if (ACTION_RELOAD_PREFS.equals(action)) {
+                loadPreferences();
             }
         }
         super.onStartCommand(intent, flags, startId);
@@ -272,6 +296,7 @@ public class EasyLockService extends Service {
 
     private void start(boolean sendBroadcast) {
         PreferencesHelper.setPreference(this, KEY_MASTER_SWITCH_ON, true);
+        loadPreferences();
         try {
             lockOverlay.execute();
             filterOverlay.execute();
