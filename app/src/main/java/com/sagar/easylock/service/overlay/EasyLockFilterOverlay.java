@@ -3,6 +3,7 @@ package com.sagar.easylock.service.overlay;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.PixelFormat;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -63,7 +64,7 @@ public class EasyLockFilterOverlay extends OverlayBase {
         rootView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-//                Log.d("EasyLock", "Overlay tapped: " + motionEvent.getX() + ", " + motionEvent.getY());
+                Log.d("EasyLock", "Filter Overlay tapped: " + motionEvent.getX() + ", " + motionEvent.getY());
                 long currentEventTime = motionEvent.getEventTime();
                 if(currentEventTime-lastEventTime <= getDoubleTapTimeout()){
                     onDoubleTap();

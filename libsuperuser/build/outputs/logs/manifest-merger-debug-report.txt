@@ -1,0 +1,37 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:1:1-7:12
+INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:1:1-7:12
+INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:1:1-7:12
+INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:1:1-7:12
+INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:1:1-7:12
+INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:1:1-7:12
+INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:1:1-7:12
+	package
+		ADDED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:2:5-40
+		INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml
+		INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml
+	android:versionName
+		ADDED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:4:5-30
+		INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml
+		INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:1:11-69
+	android:versionCode
+		ADDED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:3:5-28
+		INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml
+		INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml
+uses-sdk
+ADDED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:6:5-73
+INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:6:5-73
+INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:6:5-73
+INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:6:5-73
+INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:6:5-73
+	android:targetSdkVersion
+		ADDED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:6:41-70
+		INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml
+		INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml
+	android:minSdkVersion
+		ADDED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml:6:15-40
+		INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml
+		INJECTED from /Users/aravind/programming/EasyLock/libsuperuser/AndroidManifest.xml
