@@ -105,13 +105,13 @@
                         </LinearLayout>
                     </LinearLayout>
 
-                    <!--<View style="@style/SeparatorView"/>
+                    <View style="@style/SeparatorView"/>
 
                     <CheckBox
                         android:layout_width="match_parent"
                         android:text="@string/touch_anywhere"
                         android:id="@+id/checkBox_touch_anywhere"
-                        style="@style/CardItemStyle"/>-->
+                        style="@style/CardItemStyle"/>
 
                     <View style="@style/SeparatorView"
                         android:id="@+id/separator_avoid_lockscreen"/>

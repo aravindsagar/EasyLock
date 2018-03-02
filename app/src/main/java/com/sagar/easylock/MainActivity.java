@@ -53,6 +53,7 @@ import static com.sagar.easylock.PreferencesHelper.KEY_SHOW_NOTIFICATION;
 import static com.sagar.easylock.PreferencesHelper.KEY_START_ON_BOOT;
 import static com.sagar.easylock.PreferencesHelper.KEY_STATUS_BAR_HEIGHT;
 import static com.sagar.easylock.PreferencesHelper.KEY_SUPPORT_SMART_LOCK;
+import static com.sagar.easylock.PreferencesHelper.KEY_TOUCH_ANYWHERE;
 import static com.sagar.easylock.PreferencesHelper.getBoolPreference;
 import static com.sagar.easylock.PreferencesHelper.getIntPreference;
 import static com.sagar.easylock.PreferencesHelper.setPreference;
@@ -249,8 +250,8 @@ public class MainActivity extends AppCompatActivity {
         final CheckBox startOnBootCheckBox = (CheckBox) findViewById(R.id.checkBox_start_on_boot),
                  showNotificationCheckBox  = (CheckBox) findViewById(R.id.checkBox_show_notification),
                  smartLockCheckBox         = (CheckBox) findViewById(R.id.checkBox_enable_smart_lock_support),
-                 avoidLockscreenCheckBox   = (CheckBox) findViewById(R.id.checkBox_avoid_lockscreen)/*,
-                 touchAnywhereCheckbox     = (CheckBox) findViewById(R.id.checkBox_touch_anywhere)*/;
+                 avoidLockscreenCheckBox   = (CheckBox) findViewById(R.id.checkBox_avoid_lockscreen),
+                 touchAnywhereCheckbox     = (CheckBox) findViewById(R.id.checkBox_touch_anywhere);
         avoidSoftkeyCheckBox = (CheckBox) findViewById(R.id.checkBox_avoid_soft_key);
 
         // Loading the saved preferences
@@ -259,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
         showNotificationCheckBox.setChecked(getBoolPreference(this, KEY_SHOW_NOTIFICATION, true));
         smartLockCheckBox.setChecked(getBoolPreference(this, KEY_SUPPORT_SMART_LOCK));
         avoidLockscreenCheckBox.setChecked(getBoolPreference(this, KEY_AVOID_LOCKSCREEN));
-        /*touchAnywhereCheckbox.setChecked(getBoolPreference(this, KEY_TOUCH_ANYWHERE));*/
+        touchAnywhereCheckbox.setChecked(getBoolPreference(this, KEY_TOUCH_ANYWHERE));
 
         smartLockCheckBox.setVisibility(View.GONE);
         final View smartLockSeparator = findViewById(R.id.separator_smart_lock);
@@ -376,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
             avoidLockscreenSeparator.setVisibility(View.GONE);
         }
 
-        /*touchAnywhereCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        touchAnywhereCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(final CompoundButton compoundButton, boolean b) {
                 if (b) {
@@ -407,7 +408,7 @@ public class MainActivity extends AppCompatActivity {
                     setPreference(MainActivity.this, KEY_TOUCH_ANYWHERE, false);
                 }
             }
-        });*/
+        });
     }
 
     private void setUpDoubleTapTimeoutControls() {
