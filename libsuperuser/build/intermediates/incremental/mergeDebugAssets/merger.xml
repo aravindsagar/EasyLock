@@ -1,2 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<merger version="3"><dataSet config="main"><source path="/Users/aravind/programming/EasyLock/libsuperuser/assets"/><source path="/Users/aravind/programming/EasyLock/libsuperuser/build/generated/assets/shaders/debug"/></dataSet><dataSet config="debug"><source path="/Users/aravind/programming/EasyLock/libsuperuser/src/debug/assets"/></dataSet></merger>
